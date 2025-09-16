@@ -9,6 +9,8 @@ import org.example.iec61850.datatypes.protection.INS;
 import org.example.iec61850.datatypes.protection.SPS;
 import org.example.iec61850.datatypes.settings.ING;
 
+import java.time.Instant;
+
 /**
  * Класс, описывающий АПВ
  */
@@ -61,6 +63,9 @@ public class RREC extends LN {
     private boolean isImpulseActiveC = false;
     private int readyTimeC = 0;
     private boolean inReadyStateC = false;
+
+    boolean prevOp = false;
+    boolean currentOp = false;
 
     @Override
     public void process() {
@@ -240,5 +245,13 @@ public class RREC extends LN {
         } else {
             AutoRecSt.getStVal().setValue(0);
         }
+
+        // Метка времени срабатывания АПВ (ф.A)
+        currentOp = Op.getPhsA().getValue();
+        if (currentOp && !prevOp) {
+            Instant now = Instant.now();
+            System.out.println("АПВ ф.A сработало в: " + now);
+        }
+        prevOp = currentOp;
     }
 }

@@ -9,6 +9,8 @@ import org.example.iec61850.datatypes.protection.ACD;
 import org.example.iec61850.datatypes.protection.ACT;
 import org.example.iec61850.datatypes.settings.*;
 
+import java.time.Instant;
+
 /**
  * Класс, описывающий токовую защиту
  */
@@ -47,6 +49,10 @@ public class PTOC extends LN {
     private int cntTimeB = 0;
     private int cntTimeC = 0;
 
+    boolean prevOp = false;
+    boolean currentOp = false;
+    boolean prevIsKZ = false;
+
     @Override
     public void process() {
         boolean strA = A.getPhsA().getCVal().getMag().getF().getValue() > StrVal.getSetMag().getF().getValue();
@@ -82,5 +88,20 @@ public class PTOC extends LN {
         Op.getPhsC().setValue(cntTimeC * dt > OpDITmms.getSetVal().getValue());
 
         Op.getGeneral().setValue(Op.getPhsA().getValue() || Op.getPhsB().getValue() || Op.getPhsC().getValue());
+
+        // Метка времени начало КЗ (ф.A)
+        if (strA && !prevIsKZ) {
+            Instant now = Instant.now();
+            System.out.println("КЗ в ф.A возникло в: " + now);
+        }
+        prevIsKZ = strA;
+
+        // Метка времени срабатывания токовой защиты (ф.A)
+        currentOp = Op.getPhsA().getValue();
+        if (currentOp && !prevOp) {
+            Instant now = Instant.now();
+            System.out.println("Защита ф.A сработала в: " + now);
+        }
+        prevOp = currentOp;
     }
 }
